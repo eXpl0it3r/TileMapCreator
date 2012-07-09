@@ -1,0 +1,27 @@
+* {
+	FontName: Bridgnorth;
+}
+
+Window {
+	BackgroundColor: #2D3D5B00;
+	BorderColor: #35496A00;
+	Padding: 0;
+	Gap: 0;
+	BorderWidth: 0;
+}
+
+ToggleButton {
+	Padding: 0;
+}
+
+Button {
+	Padding: 0;
+}
+
+Label {
+	FontSize: 15;
+}
+
+/*Notebook {
+	Padding: 12;
+}*/

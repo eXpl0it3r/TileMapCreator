@@ -1,72 +1,75 @@
-#ifndef APPLICATION_HPP
-#define APPLICATION_HPP
+#pragma once
 
-#include "Resources.hpp"
-#include "Grid.hpp"
+#include <Thor/Resources.hpp>
+#include <SFML/Graphics.hpp>
+#include "GUI.hpp"
+/*#include "Grid.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <SFGUI/SFGUI.hpp>
 #include <SFGUI/Engines/BREW.hpp>
-#include <SFGUI/Renderer.hpp>
+#include <SFGUI/Renderer.hpp>*/
 
 class Application
 {
 public:
+	/// @brief Constructor.
+	///
 	Application();
 
+	/// @brief Initialization with possible error returner.
+	/// @return True in case everything got initialized correctly, false otherwise.
+	bool init();
+
+	/// @brief Starts the application, that includes create a window and managing the GUI, etc.
+	/// @return True in case everything run correctly, false otherwise.
 	bool run();
 
-private:
-	// Setup
-	void createWidgets();
-	void createSignals();
-
-	// Events
-	void onResize();
+	/// @brief Callback function if button 'put' is pressed.
+	///
 	void onClickPut();
+
+	/// @brief Callback function if button 'remove' is pressed.
+	///
 	void onClickRemove();
+
+	/// @brief Callback function if button 'exit' is pressed.
+	///
 	void onClickExit();
+
+	/// @brief Callback function if the window gets resized. Can also be used to update the views.
+	///
+	void onResize();
+
+private:
+	// Cache for resources
+	thor::MultiResourceCache mCache;
+
+	// Window
+	sf::RenderWindow mWindow;
+
+	// GUI
+	GUI mGUI;
+	sf::View mGUIView;
+
+	// Grid
+	sf::View mGridView;
+
+	// Time management
+	sf::Clock mClock;
+
+	/*
+	// Events
 	void onMouseWheelMoved(sf::Event aEvent);
 	void onInput();
 
 	// SFML elements
-	sf::RenderWindow mWindow;
-	sfg::SFGUI mSfgui;
-	sf::Clock mClock;
 	sf::Vector2i miLastPosition;
 	sf::Vector2u muLastPosition;
-	sf::View mGridView;
-	sf::View mGUIView;
-
-	// Resource
-	Resources mResources;
 
 	// Grid
 	Grid mGrid;
 	sf::Rect<unsigned int> mSelectionRect;
 	std::vector<sf::Vector2u> mSelection;
-	bool mSelectionState;
-
-	// SFGUI elements
-	sfg::Desktop mDesktop;
-	sfg::Window::Ptr mWndMain;
-	sfg::Box::Ptr mSideBar;
-	sfg::Box::Ptr mEditBar;
-	sfg::Box::Ptr mFileBar;
-
-	sfg::Box::Ptr mTilesBox;
-	sfg::Notebook::Ptr mTilesNotebook;
-	sfg::Table::Ptr mTilesStaticTable;
-	std::vector<sfg::Image::Ptr> mTilesStaticElements;
-	sfg::Table::Ptr mTilesAnimatedTable;
-	std::vector<sfg::Image::Ptr> mTilesAnimatedElements;
-
-	sfg::ToggleButton::Ptr mBtnPut;
-	sfg::ToggleButton::Ptr mBtnRemove;
-	sfg::Button::Ptr mBtnAdd;
-	sfg::Button::Ptr mBtnSave;
-	sfg::Button::Ptr mBtnLoad;
-	sfg::Button::Ptr mBtnExit;
+	bool mSelectionState;*/
 };
-
-#endif // APPLICATION_HPP

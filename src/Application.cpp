@@ -1,101 +1,31 @@
 #include "Application.hpp"
 
-Application::Application() :
-	mGrid(mResources.getTexture(0), sf::Vector2u(20, 20)),
-	mSelectionState(false),
-	mWindow(sf::VideoMode(1024, 768, 32), "Tile Map Creator", sf::Style::Close | sf::Style::Resize | sf::Style::Titlebar),
-	mGridView(sf::FloatRect(0, 0, 1024, 768)),
-	mGUIView(mWindow.getDefaultView()),
-	mDesktop()
+Application::Application()
 {
+}
+
+bool Application::init()
+{
+	mWindow.create(sf::VideoMode(1024, 768, 32), "Tile Map Creator", sf::Style::Close | sf::Style::Resize | sf::Style::Titlebar);
 	mWindow.resetGLStates();
 	mWindow.setFramerateLimit(30);
 
-	createWidgets();
-	createSignals();
-}
+	// Initialize the GUI
+	mGUIView = sf::View(mWindow.getDefaultView());
+	if( !mGUI.init( this ) )
+		return false;
 
-void Application::createWidgets()
-{
-	// Main window
-	mWndMain = sfg::Window::Create(sfg::Window::BACKGROUND);
-	mDesktop.Add(mWndMain);
-	
-	mDesktop.GetEngine().GetResourceManager().AddFont("Bridgnorth", *mResources.getFont(0), false);
+	mGridView = sf::View(sf::FloatRect(0, 0, 1024, 768));
 
-	// Properties
-	mDesktop.SetProperty("*", "FontName", "Bridgnorth");
-	mDesktop.SetProperty("Window", "BackgroundColor", sf::Color(0x2D, 0x3D, 0x5B));
-	mDesktop.SetProperty("Window", "BorderColor", sf::Color(0x35, 0x49, 0x6A));
-	mDesktop.SetProperty("Window", "Padding", 0.f);
-	mDesktop.SetProperty("Window", "Gap", 0.f);
-	mDesktop.SetProperty("Window", "BorderWidth", 0.f);
-	mDesktop.SetProperty("ToggleButton", "Padding", 0.f);
-	mDesktop.SetProperty("Button", "Padding", 0.f);
-	mDesktop.SetProperty("Label", "FontSize", 15.f);
-	//mDesktop.SetProperty("Notebook", "Padding", 12.f);
-	
-	// Buttons
-	mBtnPut = sfg::ToggleButton::Create();
-	mBtnPut->SetImage(mResources.getImageGui(0));
+	// Ensure sizes view sizes
+	onResize();
 
-	mBtnRemove = sfg::ToggleButton::Create();
-	mBtnRemove->SetImage(mResources.getImageGui(1));
-
-	mBtnAdd = sfg::Button::Create();
-	mBtnAdd->SetImage(mResources.getImageGui(2));
-
-	mBtnSave = sfg::Button::Create();
-	mBtnSave->SetImage(mResources.getImageGui(3));
-
-	mBtnLoad = sfg::Button::Create();
-	mBtnLoad->SetImage(mResources.getImageGui(4));
-
-	mBtnExit = sfg::Button::Create();
-	mBtnExit->SetImage(mResources.getImageGui(5));
-
-	mEditBar = sfg::Box::Create(sfg::Box::HORIZONTAL, 0.f);
-	mEditBar->Pack(mBtnPut);
-	mEditBar->Pack(mBtnRemove);
-	mEditBar->Pack(mBtnAdd);
-
-	mFileBar = sfg::Box::Create(sfg::Box::HORIZONTAL, 0.f);
-	mFileBar->Pack(mBtnSave);
-	mFileBar->Pack(mBtnLoad);
-	mFileBar->Pack(mBtnExit);
-
-	// Static table
-	mTilesStaticTable = sfg::Table::Create();
-
-	// Animated table
-	mTilesAnimatedTable = sfg::Table::Create();
-
-	// Notebook
-	mTilesNotebook = sfg::Notebook::Create();
-	mTilesNotebook->SetTabPosition(sfg::Notebook::TOP);
-	mTilesNotebook->AppendPage(mTilesStaticTable, sfg::Label::Create("Tiles"));
-	mTilesNotebook->AppendPage(mTilesAnimatedTable, sfg::Label::Create("Actions"));
-
-	// Add boxes
-	mSideBar = sfg::Box::Create(sfg::Box::VERTICAL, 0.f);
-	mSideBar->Pack(mEditBar, false, true);
-	mSideBar->Pack(mTilesNotebook, true, true);
-	mSideBar->Pack(mFileBar, false, true);
-	mWndMain->Add(mSideBar);
-}
-
-void Application::createSignals()
-{
-	mBtnPut->GetSignal(sfg::Widget::OnLeftClick).Connect(&Application::onClickPut, this);
-	mBtnRemove->GetSignal(sfg::Widget::OnLeftClick).Connect(&Application::onClickRemove, this);
-	mBtnExit->GetSignal(sfg::Widget::OnLeftClick).Connect(&Application::onClickExit, this);
+	return true;
 }
 
 bool Application::run()
 {
 	sf::Event event;
-
-	onResize(); // Ensure sizes
 
 	while(mWindow.isOpen())
 	{
@@ -105,27 +35,41 @@ bool Application::run()
 				mWindow.close();
 			else if(event.type == sf::Event::Resized)
 				onResize();
-			else if(event.type == sf::Event::MouseWheelMoved)
-				onMouseWheelMoved(event);
+			/*else if(event.type == sf::Event::MouseWheelMoved)
+				onMouseWheelMoved(event);*/
 
-			mDesktop.HandleEvent(event);
+			mGUI.Desktop.HandleEvent(event);
 		}
 
-		mDesktop.Update(mClock.restart().asSeconds());
-		onInput();
+		mGUI.Desktop.Update(mClock.restart().asSeconds());
+		//onInput();
 
 		mWindow.clear();
 
 		mWindow.setView(mGridView);
-		mWindow.draw(mGrid.getDrawable());
+		//mWindow.draw(mGrid.getDrawable());
 		mWindow.setView(mGUIView);
 
-		mSfgui.Display(mWindow);
+		mGUI.SFGUI.Display(mWindow);
 
 		mWindow.display();
 	}
-	
 	return true;
+}
+
+void Application::onClickPut()
+{
+	mGUI.BtnRemove->SetActive(false);
+}
+
+void Application::onClickRemove()
+{
+	mGUI.BtnPut->SetActive(false);
+}
+
+void Application::onClickExit()
+{
+	mWindow.close();
 }
 
 void Application::onResize()
@@ -154,24 +98,26 @@ void Application::onResize()
 	// The sidebar should be 180px wide
 	const float width = 180.f;
 
-	mDesktop.UpdateViewRect(sf::FloatRect(0.f, 0.f, size.x, size.y));
-	mWndMain->SetAllocation(sf::FloatRect(size.x-width, 0.f, width, size.y));
-	mSideBar->SetAllocation(sf::FloatRect(0.f, 0.f, width, size.y));
+	mGUI.Desktop.UpdateViewRect(sf::FloatRect(0.f, 0.f, size.x, size.y));
+	mGUI.WndMain->SetAllocation(sf::FloatRect(size.x-width, 0.f, width, size.y));
+	mGUI.SideBar->SetAllocation(sf::FloatRect(0.f, 0.f, width, size.y));
 }
 
-void Application::onClickPut()
+/*:
+	mGrid(mResources.getTexture(0), sf::Vector2u(20, 20)),
+	mSelectionState(false),
 {
-	mBtnRemove->SetActive(false);
+
+
+	createWidgets();
+	createSignals();
 }
 
-void Application::onClickRemove()
+bool Application::run()
 {
-	mBtnPut->SetActive(false);
-}
 
-void Application::onClickExit()
-{
-	mWindow.close();
+	
+	return true;
 }
 
 void Application::onMouseWheelMoved(sf::Event aEvent)
@@ -260,5 +206,6 @@ void Application::onInput()
 		mGrid.highlight(uPos);
 		muLastPosition = uPos;
 		miLastPosition = iPos;
-	}*/
+	}*//*
 }
+*/
